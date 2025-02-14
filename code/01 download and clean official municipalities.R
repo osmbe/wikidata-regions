@@ -69,12 +69,17 @@ multi_lines <- st_cast(components, "MULTILINESTRING")
 # Convert to individual LINESTRINGs
 line_parts <- st_cast(multi_lines, "LINESTRING")
 
-# Extract interior rings (holes) → Lines that are NOT the exterior boundary
-holes <- line_parts[-1, ]  # Assuming first LINESTRING is the exterior ring
+# calculate area 
+holes <- holes %>%
+  mutate(area = st_area(geometry))
+
+# convert area to numeric without unit
+holes$area <- as.numeric(holes$area)
+
 
 # Filter small holes < 1 m²
-tiny_holes <- holes_polygons %>%
-  filter(area < units::set_units(10, "m^2"))
+tiny_holes <- holes %>%
+  filter(area < 1)
 plot(tiny_holes$geometry)
 tiny_holes$tiny_hole=TRUE
 tiny_holes<-tiny_holes %>% select(tiny_hole)
